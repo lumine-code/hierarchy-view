@@ -4,7 +4,7 @@
   // makes every press sit out the 1000 ms partial-match timeout, and macOS
   // binds alt-h in the editor as the Cocoa delete-to-beginning-of-word, which
   // would leave this dead in an editor there.
-  "atom-workspace": {
+  "lumine-workspace": {
     "alt-k": "call-hierarchy:toggle-focus"
   }
 }

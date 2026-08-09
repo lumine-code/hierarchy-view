@@ -13,7 +13,7 @@ describe("call-hierarchy package assets", () => {
     // A bare alt-<letter> at workspace scope reveals a surface, one letter per
     // surface. `keymaps` has to be in `files` or the binding never ships.
     const keymap = JSON.parse(read("keymaps/call-hierarchy.json").replace(/^\s*\/\/.*$/gm, ""));
-    expect(keymap["atom-workspace"]["alt-k"]).toBe("call-hierarchy:toggle-focus");
+    expect(keymap["lumine-workspace"]["alt-k"]).toBe("call-hierarchy:toggle-focus");
     expect(JSON.parse(read("package.json")).files).toContain("keymaps");
     expect(exists("menus")).toBe(false);
   });
@@ -78,7 +78,7 @@ describe("call-hierarchy package assets", () => {
   });
 
   it("has no legacy editor branding in lib, README, or package.json", () => {
-    // Technical identifiers such as the `atom` global, `atom-text-editor`
+    // Technical identifiers such as the `lumine` global, `lumine-text-editor`
     // selectors, and `lumine://` URIs are allowed; editor branding is not.
     const branding = /\bAtom\b|\bPulsar\b/;
     for (const file of fs.readdirSync(path.join(root, "lib"))) {

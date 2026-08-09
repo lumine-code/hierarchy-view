@@ -53,20 +53,20 @@ describe("call-hierarchy", () => {
   }
 
   async function showIncoming() {
-    atom.commands.dispatch(atom.views.getView(editor), "call-hierarchy:incoming-calls");
+    lumine.commands.dispatch(lumine.views.getView(editor), "call-hierarchy:incoming-calls");
     const view = await waitFor(() => mainModule.view);
     await waitFor(() => view.element.querySelector("li.call-hierarchy-entry"));
     return view;
   }
 
   async function expandRoot(view) {
-    atom.commands.dispatch(view.element, "core:move-right");
+    lumine.commands.dispatch(view.element, "core:move-right");
     await waitFor(() => view.element.querySelectorAll("li.call-hierarchy-entry").length === 3);
   }
 
   beforeEach(async () => {
     jasmine.useRealClock();
-    jasmine.attachToDOM(atom.views.getView(atom.workspace));
+    jasmine.attachToDOM(lumine.views.getView(lumine.workspace));
 
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "call-hierarchy-"));
     originPath = path.join(tempDir, "origin.js");
@@ -74,9 +74,9 @@ describe("call-hierarchy", () => {
     fs.writeFileSync(originPath, "function alpha() {}\n");
     fs.writeFileSync(targetPath, "function beta() { alpha(); }\nfunction gamma() { alpha(); }\n");
 
-    const pack = await atom.packages.activatePackage("call-hierarchy");
+    const pack = await lumine.packages.activatePackage("call-hierarchy");
     mainModule = pack.mainModule;
-    editor = await atom.workspace.open(originPath);
+    editor = await lumine.workspace.open(originPath);
 
     // A stub of the `ide-client` service: one prepared item at the
     // cursor, two incoming callers in another file, and no outgoing calls.
@@ -113,7 +113,7 @@ describe("call-hierarchy", () => {
 
   afterEach(async () => {
     serviceDisposable?.dispose();
-    await atom.packages.deactivatePackage("call-hierarchy");
+    await lumine.packages.deactivatePackage("call-hierarchy");
     // Retries because Windows keeps a directory non-empty until the last handle on a child
     // closes, and `force` swallows only ENOENT.
     fs.rmSync(tempDir, { recursive: true, force: true, maxRetries: 10, retryDelay: 50 });
@@ -132,7 +132,7 @@ describe("call-hierarchy", () => {
       true,
     );
     // The dock item is open in the right dock by default.
-    expect(atom.workspace.getRightDock().getPaneItems()).toContain(view);
+    expect(lumine.workspace.getRightDock().getPaneItems()).toContain(view);
 
     expect(service.request).toHaveBeenCalledWith(editor, "textDocument/prepareCallHierarchy", {
       textDocument: { uri: pathToFileURL(originPath).href },
@@ -152,7 +152,7 @@ describe("call-hierarchy", () => {
     expect(incoming[0].args[2].item.name).toBe("alpha");
 
     // Collapse and re-expand: the children come from the per-node cache.
-    atom.commands.dispatch(view.element, "core:move-left");
+    lumine.commands.dispatch(view.element, "core:move-left");
     expect(view.element.querySelectorAll("li.call-hierarchy-entry").length).toBe(1);
     await expandRoot(view);
     expect(names(view)).toEqual(["alpha", "beta", "gamma"]);
@@ -163,12 +163,12 @@ describe("call-hierarchy", () => {
     const view = await showIncoming();
     await expandRoot(view);
 
-    atom.commands.dispatch(view.element, "core:move-down");
+    lumine.commands.dispatch(view.element, "core:move-down");
     expect(view.element.querySelector("li.selected .call-hierarchy-name").textContent).toBe("beta");
 
-    spyOn(atom.workspace, "open");
-    atom.commands.dispatch(view.element, "core:confirm");
-    expect(atom.workspace.open).toHaveBeenCalledWith(targetPath, {
+    spyOn(lumine.workspace, "open");
+    lumine.commands.dispatch(view.element, "core:confirm");
+    expect(lumine.workspace.open).toHaveBeenCalledWith(targetPath, {
       initialLine: 0,
       initialColumn: 9,
       pending: true,
@@ -186,7 +186,7 @@ describe("call-hierarchy", () => {
     expect(names(view)).toEqual(["alpha"]);
 
     // The stub reports no outgoing calls, so expanding turns the root into a leaf.
-    atom.commands.dispatch(view.element, "core:move-right");
+    lumine.commands.dispatch(view.element, "core:move-right");
     await waitFor(() => view.element.querySelector("li.call-hierarchy-entry.list-item"));
     expect(requestCalls("callHierarchy/outgoingCalls").length).toBe(1);
     expect(names(view)).toEqual(["alpha"]);
@@ -194,10 +194,10 @@ describe("call-hierarchy", () => {
 
   it("no-ops with an info notification when the session lacks call-hierarchy support", async () => {
     session.capabilities = {};
-    atom.notifications.clear();
-    atom.commands.dispatch(atom.views.getView(editor), "call-hierarchy:incoming-calls");
+    lumine.notifications.clear();
+    lumine.commands.dispatch(lumine.views.getView(editor), "call-hierarchy:incoming-calls");
 
-    const notification = await waitFor(() => atom.notifications.getNotifications()[0]);
+    const notification = await waitFor(() => lumine.notifications.getNotifications()[0]);
     expect(notification.getType()).toBe("info");
     expect(notification.getMessage()).toContain("does not support call hierarchy");
     expect(mainModule.view).toBeNull();
@@ -206,10 +206,10 @@ describe("call-hierarchy", () => {
 
   it("notifies when the server finds no symbol at the cursor", async () => {
     service.request.and.resolveTo(null);
-    atom.notifications.clear();
-    atom.commands.dispatch(atom.views.getView(editor), "call-hierarchy:incoming-calls");
+    lumine.notifications.clear();
+    lumine.commands.dispatch(lumine.views.getView(editor), "call-hierarchy:incoming-calls");
 
-    const notification = await waitFor(() => atom.notifications.getNotifications()[0]);
+    const notification = await waitFor(() => lumine.notifications.getNotifications()[0]);
     expect(notification.getType()).toBe("info");
     expect(notification.getMessage()).toBe("No symbol at cursor");
     expect(mainModule.view).toBeNull();

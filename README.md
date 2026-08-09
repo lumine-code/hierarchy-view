@@ -19,12 +19,12 @@ To install `call-hierarchy` search for _call-hierarchy_ in the Install pane of t
 
 ## Commands
 
-Commands available in `atom-workspace`:
+Commands available in `lumine-workspace`:
 
 - `call-hierarchy:toggle`: show or hide the call hierarchy dock item,
 - `call-hierarchy:toggle-focus`: focus the call hierarchy, or return focus to the editor.
 
-Commands available in `atom-text-editor`:
+Commands available in `lumine-text-editor`:
 
 - `call-hierarchy:incoming-calls`: show the callers of the symbol under the cursor,
 - `call-hierarchy:outgoing-calls`: show the calls made from the symbol under the cursor.
