@@ -1,7 +1,7 @@
 {
   "name": "hierarchy-view",
   "author": "lumine-code",
-  "description": "Explore incoming and outgoing calls for a symbol.",
+  "description": "Explore the callers, callees, supertypes and subtypes of a symbol.",
   "repository": "https://github.com/lumine-code/hierarchy-view",
   "bugs": {
     "url": "https://github.com/lumine-code/hierarchy-view/issues"
@@ -9,8 +9,9 @@
   "keywords": [
     "callers",
     "callees",
-    "incoming-calls",
-    "outgoing-calls",
+    "supertypes",
+    "subtypes",
+    "inheritance",
     "navigation",
     "lsp"
   ],
@@ -20,7 +21,8 @@
     "lumine": "^1.0.0"
   },
   "backgroundTips": [
-    "{% if keys['hierarchy-view:incoming-calls'] %}You can list the callers of the symbol under the cursor with {{ 'hierarchy-view:incoming-calls' | keystroke }}{% else %}You can walk the callers and the callees of a symbol as a tree in the call hierarchy panel.{% endif %}"
+    "{% if keys['hierarchy-view:incoming-calls'] %}You can list the callers of the symbol under the cursor with {{ 'hierarchy-view:incoming-calls' | keystroke }}{% else %}You can walk the callers and the callees of a symbol as a lazily expanded tree.{% endif %}",
+    "{% if keys['hierarchy-view:supertypes'] %}You can list the base types of the symbol under the cursor with {{ 'hierarchy-view:supertypes' | keystroke }}{% else %}You can walk the supertypes and the subtypes of a type as a lazily expanded tree.{% endif %}"
   ],
   "main": "./lib/main",
   "files": [
@@ -53,7 +55,7 @@
   "configSchema": {
     "dockSide": {
       "title": "Dock Side",
-      "description": "The dock in which the call hierarchy opens.",
+      "description": "The dock in which the hierarchy opens.",
       "type": "string",
       "enum": [
         "left",

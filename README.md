@@ -1,17 +1,18 @@
 # hierarchy-view
 
-Explore incoming and outgoing calls for a symbol.
+Explore the callers, callees, supertypes and subtypes of a symbol.
 
-The call hierarchy lives in a dock item, powered by the bundled language-server hub: prepare it from the symbol under the cursor, then walk callers or callees as a lazily expanded tree and jump to any call site.
+Both hierarchies share one dock item, powered by the bundled language-server hub: prepare one from the symbol under the cursor, then walk it as a lazily expanded tree and jump to any entry.
 
 ## Features
 
-- **Incoming calls**: lists the callers of the symbol under the cursor.
-- **Outgoing calls**: lists the calls made from the symbol under the cursor.
+- **Call hierarchy**: lists the callers or the callees of the symbol under the cursor.
+- **Type hierarchy**: lists the supertypes or the subtypes of the symbol under the cursor.
 - **Lazy tree**: expanding an entry queries the language server for the next level and caches it.
 - **Direction switch**: a header button re-queries the same symbol in the other direction.
-- **Navigation**: click an entry, or confirm it with the keyboard, to open the call site in a pending pane.
-- **Capability aware**: commands no-op with a notification when the language server lacks hierarchy-view support.
+- **Navigation**: click an entry, or confirm it with the keyboard, to open it in a pending pane.
+- **One server per tree**: the server that prepared the root answers every request in it, so an entry is never resolved against a server that did not produce it.
+- **Capability aware**: commands no-op with a notification when no language server on the file serves that hierarchy.
 
 ## Installation
 
@@ -21,17 +22,25 @@ To install `hierarchy-view` search for _hierarchy-view_ in the Install pane of t
 
 Commands available in `lumine-workspace`:
 
-- `hierarchy-view:toggle`: show or hide the call hierarchy dock item,
-- `hierarchy-view:toggle-focus`: focus the call hierarchy, or return focus to the editor.
+- `hierarchy-view:toggle`: show or hide the hierarchy dock item,
+- `hierarchy-view:toggle-focus`: focus the hierarchy, or return focus to the editor.
 
 Commands available in `lumine-text-editor`:
 
 - `hierarchy-view:incoming-calls`: show the callers of the symbol under the cursor,
-- `hierarchy-view:outgoing-calls`: show the calls made from the symbol under the cursor.
+- `hierarchy-view:outgoing-calls`: show the calls made from the symbol under the cursor,
+- `hierarchy-view:supertypes`: show the base types of the symbol under the cursor,
+- `hierarchy-view:subtypes`: show the types derived from the symbol under the cursor.
+
+## Usage
+
+The header button switches direction within the hierarchy on screen; the commands choose which hierarchy that is. Running a type command over a displayed call tree replaces it and retitles the tab, so only one of the two is ever open.
+
+Type hierarchy is served by fewer language servers than call hierarchy is — clangd, jdtls and Metals implement it, while pyright, typescript-language-server, texlab and tinymist offer only call hierarchy.
 
 ## Customization
 
-The call hierarchy appearance can be tweaked from your `styles.css`:
+The hierarchy appearance can be tweaked from your `styles.css`:
 
 ```css
 .hierarchy-view {
@@ -44,7 +53,7 @@ The call hierarchy appearance can be tweaked from your `styles.css`:
 
 ## Services
 
-- **ide-client** (`^1.0.0`): consumed to route the `textDocument/prepareCallHierarchy`, `callHierarchy/incomingCalls`, and `callHierarchy/outgoingCalls` requests through the origin editor's language-server session.
+- **ide-client** (`^1.0.0`): consumed to route the `textDocument/prepareCallHierarchy`, `callHierarchy/incomingCalls`, `callHierarchy/outgoingCalls`, `textDocument/prepareTypeHierarchy`, `typeHierarchy/supertypes` and `typeHierarchy/subtypes` requests through the language-server session that serves the file.
 
 ## Contributing
 

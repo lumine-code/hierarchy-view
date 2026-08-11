@@ -72,9 +72,38 @@ describe("hierarchy-view package assets", () => {
 
   it("uses the hierarchy-view: command prefix in lib", () => {
     const main = read("lib/main.js");
-    expect(main).toContain('"hierarchy-view:incoming-calls"');
-    expect(main).toContain('"hierarchy-view:outgoing-calls"');
-    expect(main).toContain('"hierarchy-view:toggle"');
+    for (const command of [
+      "incoming-calls",
+      "outgoing-calls",
+      "supertypes",
+      "subtypes",
+      "toggle",
+      "toggle-focus",
+    ])
+      expect(main).toContain(`"hierarchy-view:${command}"`);
+  });
+
+  it("keeps the keywords specific and free of the package's own name", () => {
+    // The Install tab already scores a name match higher than any keyword, so
+    // a keyword that is part of the name is a wasted slot. Nothing else checks
+    // this, and a rename is exactly when it goes stale.
+    const { keywords } = JSON.parse(read("package.json"));
+    expect(keywords.length).toBeGreaterThan(2);
+    expect(keywords.length).toBeLessThan(9);
+    for (const keyword of keywords) {
+      expect(keyword).toMatch(/^[a-z0-9]+(-[a-z0-9]+)*$/);
+      expect("hierarchy-view").not.toContain(keyword);
+    }
+  });
+
+  it("ships a background tip for each hierarchy, right after engines", () => {
+    const pkg = JSON.parse(read("package.json"));
+    expect(pkg.backgroundTips.length).toBe(2);
+    const keys = Object.keys(pkg);
+    expect(keys[keys.indexOf("engines") + 1]).toBe("backgroundTips");
+    // Neither command is bound, so the else branch is what actually renders;
+    // a tip whose only form is a keystroke would show nothing.
+    for (const tip of pkg.backgroundTips) expect(tip).toContain("{% else %}");
   });
 
   it("has no legacy editor branding in lib, README, or package.json", () => {
