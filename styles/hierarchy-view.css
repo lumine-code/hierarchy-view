@@ -1,4 +1,4 @@
-.call-hierarchy {
+.hierarchy-view {
   display: flex;
   flex-direction: column;
   font-size: var(--font-size);
@@ -10,7 +10,7 @@
   user-select: none;
 }
 
-.call-hierarchy-header {
+.hierarchy-view-header {
   flex: none;
   display: flex;
   align-items: center;
@@ -21,49 +21,49 @@
   background-color: var(--panel-heading-background-color);
 }
 
-.call-hierarchy-direction {
+.hierarchy-view-direction {
   color: var(--text-color-highlight);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.call-hierarchy-list {
+.hierarchy-view-list {
   flex: 1;
   overflow: auto;
   padding: 0 10px 0 5px;
 }
 
-.call-hierarchy .icon::before {
+.hierarchy-view .icon::before {
   font-size: var(--font-size);
 }
 
-.call-hierarchy ul.call-hierarchy-tree {
+.hierarchy-view ul.hierarchy-view-tree {
   list-style-type: none;
   padding-left: 0;
 }
 
-.call-hierarchy ul.call-hierarchy-tree-root {
+.hierarchy-view ul.hierarchy-view-tree-root {
   position: relative;
   min-width: min-content;
 }
 
-.call-hierarchy ul.call-hierarchy-tree ul.call-hierarchy-tree {
+.hierarchy-view ul.hierarchy-view-tree ul.hierarchy-view-tree {
   padding-left: 17px;
 }
 
-.call-hierarchy .call-hierarchy-item {
+.hierarchy-view .hierarchy-view-item {
   display: flex;
   flex-direction: row;
   align-items: center;
   white-space: nowrap;
 }
 
-.call-hierarchy li.call-hierarchy-entry.selected > .call-hierarchy-item {
+.hierarchy-view li.hierarchy-view-entry.selected > .hierarchy-view-item {
   background-color: var(--background-color-selected);
 }
 
-.call-hierarchy .call-hierarchy-name::before {
+.hierarchy-view .hierarchy-view-name::before {
   flex: none;
   position: relative;
   top: -1px;
@@ -71,12 +71,12 @@
   margin-right: 5px;
 }
 
-.call-hierarchy .call-hierarchy-count {
+.hierarchy-view .hierarchy-view-count {
   flex: none;
   margin-left: 6px;
 }
 
-.call-hierarchy .call-hierarchy-detail {
+.hierarchy-view .hierarchy-view-detail {
   margin-left: 6px;
   color: var(--text-color-subtle);
   font-size: 90%;
@@ -84,7 +84,7 @@
   text-overflow: ellipsis;
 }
 
-.call-hierarchy ul.background-message {
+.hierarchy-view ul.background-message {
   padding-top: 50px;
   text-align: center;
   list-style-type: none;

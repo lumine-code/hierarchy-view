@@ -5,35 +5,35 @@ const root = path.join(__dirname, "..");
 const read = (rel) => fs.readFileSync(path.join(root, rel), "utf8");
 const exists = (rel) => fs.existsSync(path.join(root, rel));
 
-// Guards for the call-hierarchy package conventions: the lumine-code metadata,
+// Guards for the hierarchy-view package conventions: the lumine-code metadata,
 // the command prefix and config namespace, the CSS-custom-property stylesheet,
 // and the absence of legacy editor branding.
-describe("call-hierarchy package assets", () => {
+describe("hierarchy-view package assets", () => {
   it("ships a keymap on the reveal tier, and no menus", () => {
     // A bare alt-<letter> at workspace scope reveals a surface, one letter per
     // surface. `keymaps` has to be in `files` or the binding never ships.
-    const keymap = JSON.parse(read("keymaps/call-hierarchy.json").replace(/^\s*\/\/.*$/gm, ""));
-    expect(keymap["lumine-workspace"]["alt-k"]).toBe("call-hierarchy:toggle-focus");
+    const keymap = JSON.parse(read("keymaps/hierarchy-view.json").replace(/^\s*\/\/.*$/gm, ""));
+    expect(keymap["lumine-workspace"]["alt-k"]).toBe("hierarchy-view:toggle-focus");
     expect(JSON.parse(read("package.json")).files).toContain("keymaps");
     expect(exists("menus")).toBe(false);
   });
 
   it("ships a CSS stylesheet built on custom properties, not Less", () => {
-    expect(exists("styles/call-hierarchy.css")).toBe(true);
-    expect(exists("styles/call-hierarchy.less")).toBe(false);
-    const css = read("styles/call-hierarchy.css");
-    expect(css).toContain(".call-hierarchy");
+    expect(exists("styles/hierarchy-view.css")).toBe(true);
+    expect(exists("styles/hierarchy-view.less")).toBe(false);
+    const css = read("styles/hierarchy-view.css");
+    expect(css).toContain(".hierarchy-view");
     expect(css).toContain("var(--");
     expect(css).not.toContain('@import "ui-variables"');
     expect(css).not.toMatch(/\bfade\(|\bcontrast\(|\blighten\(|\bdarken\(|@[a-z-]+:/);
   });
 
-  it("is named `call-hierarchy` with lumine-code metadata and no runtime dependencies", () => {
+  it("is named `hierarchy-view` with lumine-code metadata and no runtime dependencies", () => {
     const pkg = JSON.parse(read("package.json"));
-    expect(pkg.name).toBe("call-hierarchy");
+    expect(pkg.name).toBe("hierarchy-view");
     expect(pkg.author).toBe("lumine-code");
-    expect(pkg.repository).toBe("https://github.com/lumine-code/call-hierarchy");
-    expect(pkg.bugs.url).toBe("https://github.com/lumine-code/call-hierarchy/issues");
+    expect(pkg.repository).toBe("https://github.com/lumine-code/hierarchy-view");
+    expect(pkg.bugs.url).toBe("https://github.com/lumine-code/hierarchy-view/issues");
     expect(pkg.main).toBe("./lib/main");
     expect(pkg.license).toBe("MIT");
     expect(pkg.dependencies).toBeUndefined();
@@ -47,7 +47,7 @@ describe("call-hierarchy package assets", () => {
     expect(pkg.providedServices).toBeUndefined();
   });
 
-  it("defines the config schema under the call-hierarchy namespace without order keys", () => {
+  it("defines the config schema under the hierarchy-view namespace without order keys", () => {
     const pkg = JSON.parse(read("package.json"));
     const schema = pkg.configSchema;
     expect(Object.keys(schema)).toEqual(["dockSide"]);
@@ -65,16 +65,16 @@ describe("call-hierarchy package assets", () => {
   it("keeps the README description in sync with package.json", () => {
     const pkg = JSON.parse(read("package.json"));
     const lines = read("README.md").split(/\r?\n/);
-    expect(lines[0]).toBe("# call-hierarchy");
+    expect(lines[0]).toBe("# hierarchy-view");
     const sentence = lines.find((line, index) => index > 0 && line.trim().length > 0);
     expect(sentence).toBe(pkg.description);
   });
 
-  it("uses the call-hierarchy: command prefix in lib", () => {
+  it("uses the hierarchy-view: command prefix in lib", () => {
     const main = read("lib/main.js");
-    expect(main).toContain('"call-hierarchy:incoming-calls"');
-    expect(main).toContain('"call-hierarchy:outgoing-calls"');
-    expect(main).toContain('"call-hierarchy:toggle"');
+    expect(main).toContain('"hierarchy-view:incoming-calls"');
+    expect(main).toContain('"hierarchy-view:outgoing-calls"');
+    expect(main).toContain('"hierarchy-view:toggle"');
   });
 
   it("has no legacy editor branding in lib, README, or package.json", () => {

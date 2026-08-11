@@ -56,12 +56,12 @@ function makeSession(id, capabilities, respond) {
   };
 }
 
-describe("call-hierarchy", () => {
+describe("hierarchy-view", () => {
   let mainModule, editor, tempDir, originPath, targetPath;
   let service, session, sessions, respond, serviceDisposable;
 
   function names(view) {
-    return Array.from(view.element.querySelectorAll(".call-hierarchy-name")).map(
+    return Array.from(view.element.querySelectorAll(".hierarchy-view-name")).map(
       (el) => el.textContent,
     );
   }
@@ -71,28 +71,28 @@ describe("call-hierarchy", () => {
   }
 
   async function showIncoming() {
-    lumine.commands.dispatch(lumine.views.getView(editor), "call-hierarchy:incoming-calls");
+    lumine.commands.dispatch(lumine.views.getView(editor), "hierarchy-view:incoming-calls");
     const view = await waitFor(() => mainModule.view);
-    await waitFor(() => view.element.querySelector("li.call-hierarchy-entry"));
+    await waitFor(() => view.element.querySelector("li.hierarchy-view-entry"));
     return view;
   }
 
   async function expandRoot(view) {
     lumine.commands.dispatch(view.element, "core:move-right");
-    await waitFor(() => view.element.querySelectorAll("li.call-hierarchy-entry").length === 3);
+    await waitFor(() => view.element.querySelectorAll("li.hierarchy-view-entry").length === 3);
   }
 
   beforeEach(async () => {
     jasmine.useRealClock();
     jasmine.attachToDOM(lumine.views.getView(lumine.workspace));
 
-    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "call-hierarchy-"));
+    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "hierarchy-view-"));
     originPath = path.join(tempDir, "origin.js");
     targetPath = path.join(tempDir, "target.js");
     fs.writeFileSync(originPath, "function alpha() {}\n");
     fs.writeFileSync(targetPath, "function beta() { alpha(); }\nfunction gamma() { alpha(); }\n");
 
-    const pack = await lumine.packages.activatePackage("call-hierarchy");
+    const pack = await lumine.packages.activatePackage("hierarchy-view");
     mainModule = pack.mainModule;
     editor = await lumine.workspace.open(originPath);
 
@@ -125,7 +125,7 @@ describe("call-hierarchy", () => {
 
   afterEach(async () => {
     serviceDisposable?.dispose();
-    await lumine.packages.deactivatePackage("call-hierarchy");
+    await lumine.packages.deactivatePackage("hierarchy-view");
     // Retries because Windows keeps a directory non-empty until the last handle on a child
     // closes, and `force` swallows only ENOENT.
     fs.rmSync(tempDir, { recursive: true, force: true, maxRetries: 10, retryDelay: 50 });
@@ -136,11 +136,11 @@ describe("call-hierarchy", () => {
     const view = await showIncoming();
 
     expect(names(view)).toEqual(["alpha"]);
-    expect(view.element.querySelector(".call-hierarchy-direction").textContent).toBe(
+    expect(view.element.querySelector(".hierarchy-view-direction").textContent).toBe(
       "Incoming calls",
     );
     // The function kind renders with the same Octicon vocabulary as the outline.
-    expect(view.element.querySelector(".call-hierarchy-name").classList.contains("icon-gear")).toBe(
+    expect(view.element.querySelector(".hierarchy-view-name").classList.contains("icon-gear")).toBe(
       true,
     );
     // The dock item is open in the right dock by default.
@@ -164,7 +164,7 @@ describe("call-hierarchy", () => {
 
     // Collapse and re-expand: the children come from the per-node cache.
     lumine.commands.dispatch(view.element, "core:move-left");
-    expect(view.element.querySelectorAll("li.call-hierarchy-entry").length).toBe(1);
+    expect(view.element.querySelectorAll("li.hierarchy-view-entry").length).toBe(1);
     await expandRoot(view);
     expect(names(view)).toEqual(["alpha", "beta", "gamma"]);
     expect(requestCalls("callHierarchy/incomingCalls").length).toBe(1);
@@ -175,7 +175,7 @@ describe("call-hierarchy", () => {
     await expandRoot(view);
 
     lumine.commands.dispatch(view.element, "core:move-down");
-    expect(view.element.querySelector("li.selected .call-hierarchy-name").textContent).toBe("beta");
+    expect(view.element.querySelector("li.selected .hierarchy-view-name").textContent).toBe("beta");
 
     spyOn(lumine.workspace, "open");
     lumine.commands.dispatch(view.element, "core:confirm");
@@ -190,23 +190,23 @@ describe("call-hierarchy", () => {
     const view = await showIncoming();
     await expandRoot(view);
 
-    view.element.querySelector(".call-hierarchy-switch").dispatchEvent(new MouseEvent("click"));
-    expect(view.element.querySelector(".call-hierarchy-direction").textContent).toBe(
+    view.element.querySelector(".hierarchy-view-switch").dispatchEvent(new MouseEvent("click"));
+    expect(view.element.querySelector(".hierarchy-view-direction").textContent).toBe(
       "Outgoing calls",
     );
     expect(names(view)).toEqual(["alpha"]);
 
     // The stub reports no outgoing calls, so expanding turns the root into a leaf.
     lumine.commands.dispatch(view.element, "core:move-right");
-    await waitFor(() => view.element.querySelector("li.call-hierarchy-entry.list-item"));
+    await waitFor(() => view.element.querySelector("li.hierarchy-view-entry.list-item"));
     expect(requestCalls("callHierarchy/outgoingCalls").length).toBe(1);
     expect(names(view)).toEqual(["alpha"]);
   });
 
-  it("no-ops with an info notification when the session lacks call-hierarchy support", async () => {
+  it("no-ops with an info notification when the session lacks hierarchy-view support", async () => {
     session.capabilities = {};
     lumine.notifications.clear();
-    lumine.commands.dispatch(lumine.views.getView(editor), "call-hierarchy:incoming-calls");
+    lumine.commands.dispatch(lumine.views.getView(editor), "hierarchy-view:incoming-calls");
 
     const notification = await waitFor(() => lumine.notifications.getNotifications()[0]);
     expect(notification.getType()).toBe("info");
@@ -254,7 +254,7 @@ describe("call-hierarchy", () => {
   it("stays generic when several servers are attached and none can serve it", async () => {
     sessions = [makeSession("Linter", {}, respond), makeSession("Other", {}, respond)];
     lumine.notifications.clear();
-    lumine.commands.dispatch(lumine.views.getView(editor), "call-hierarchy:incoming-calls");
+    lumine.commands.dispatch(lumine.views.getView(editor), "hierarchy-view:incoming-calls");
 
     const notification = await waitFor(() => lumine.notifications.getNotifications()[0]);
     expect(notification.getMessage()).toBe(
@@ -266,7 +266,7 @@ describe("call-hierarchy", () => {
   it("notifies when no language server is attached at all", async () => {
     sessions = [];
     lumine.notifications.clear();
-    lumine.commands.dispatch(lumine.views.getView(editor), "call-hierarchy:incoming-calls");
+    lumine.commands.dispatch(lumine.views.getView(editor), "hierarchy-view:incoming-calls");
 
     const notification = await waitFor(() => lumine.notifications.getNotifications()[0]);
     expect(notification.getMessage()).toBe("No language server is active for this file.");
@@ -276,7 +276,7 @@ describe("call-hierarchy", () => {
   it("notifies when the server finds no symbol at the cursor", async () => {
     session.request.and.resolveTo(null);
     lumine.notifications.clear();
-    lumine.commands.dispatch(lumine.views.getView(editor), "call-hierarchy:incoming-calls");
+    lumine.commands.dispatch(lumine.views.getView(editor), "hierarchy-view:incoming-calls");
 
     const notification = await waitFor(() => lumine.notifications.getNotifications()[0]);
     expect(notification.getType()).toBe("info");

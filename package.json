@@ -1,10 +1,10 @@
 {
-  "name": "call-hierarchy",
+  "name": "hierarchy-view",
   "author": "lumine-code",
   "description": "Explore incoming and outgoing calls for a symbol.",
-  "repository": "https://github.com/lumine-code/call-hierarchy",
+  "repository": "https://github.com/lumine-code/hierarchy-view",
   "bugs": {
-    "url": "https://github.com/lumine-code/call-hierarchy/issues"
+    "url": "https://github.com/lumine-code/hierarchy-view/issues"
   },
   "keywords": [
     "callers",
@@ -20,7 +20,7 @@
     "lumine": "^1.0.0"
   },
   "backgroundTips": [
-    "{% if keys['call-hierarchy:incoming-calls'] %}You can list the callers of the symbol under the cursor with {{ 'call-hierarchy:incoming-calls' | keystroke }}{% else %}You can walk the callers and the callees of a symbol as a tree in the call hierarchy panel.{% endif %}"
+    "{% if keys['hierarchy-view:incoming-calls'] %}You can list the callers of the symbol under the cursor with {{ 'hierarchy-view:incoming-calls' | keystroke }}{% else %}You can walk the callers and the callees of a symbol as a tree in the call hierarchy panel.{% endif %}"
   ],
   "main": "./lib/main",
   "files": [
