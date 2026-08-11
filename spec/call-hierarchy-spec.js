@@ -39,8 +39,26 @@ function makeItem(name, uri, line, character) {
   };
 }
 
+// A session stub whose `supports()` behaves the way the hub's does: the
+// prepare method is gated on the provider field, the follow-up requests are
+// not gated at all — they are what a server registers dynamically under.
+function makeSession(id, capabilities, respond) {
+  return {
+    state: "running",
+    capabilities,
+    adapter: { id, displayName: id },
+    supports(method) {
+      if (method === "textDocument/prepareCallHierarchy")
+        return !!this.capabilities.callHierarchyProvider;
+      return true;
+    },
+    request: jasmine.createSpy(`${id} request`).and.callFake(respond),
+  };
+}
+
 describe("call-hierarchy", () => {
-  let mainModule, editor, tempDir, originPath, targetPath, service, session, serviceDisposable;
+  let mainModule, editor, tempDir, originPath, targetPath;
+  let service, session, sessions, respond, serviceDisposable;
 
   function names(view) {
     return Array.from(view.element.querySelectorAll(".call-hierarchy-name")).map(
@@ -48,8 +66,8 @@ describe("call-hierarchy", () => {
     );
   }
 
-  function requestCalls(method) {
-    return service.request.calls.all().filter((call) => call.args[1] === method);
+  function requestCalls(method, target = session) {
+    return target.request.calls.all().filter((call) => call.args[0] === method);
   }
 
   async function showIncoming() {
@@ -80,34 +98,28 @@ describe("call-hierarchy", () => {
 
     // A stub of the `ide-client` service: one prepared item at the
     // cursor, two incoming callers in another file, and no outgoing calls.
-    session = {
-      state: "running",
-      capabilities: { callHierarchyProvider: true },
-      adapter: { id: "stub", displayName: "Stub Server" },
-      supports: () => true,
-    };
     const rootItem = makeItem("alpha", pathToFileURL(originPath).href, 0, 9);
-    service = {
-      sessionForEditor: () => session,
-      request: jasmine.createSpy("request").and.callFake(async (_editor, method) => {
-        if (method === "textDocument/prepareCallHierarchy") return [rootItem];
-        if (method === "callHierarchy/incomingCalls") {
-          const uri = pathToFileURL(targetPath).href;
-          return [
-            {
-              from: makeItem("beta", uri, 0, 9),
-              fromRanges: [{ start: { line: 0, character: 18 }, end: { line: 0, character: 23 } }],
-            },
-            {
-              from: makeItem("gamma", uri, 1, 9),
-              fromRanges: [{ start: { line: 1, character: 19 }, end: { line: 1, character: 24 } }],
-            },
-          ];
-        }
-        if (method === "callHierarchy/outgoingCalls") return [];
-        return null;
-      }),
+    respond = async (method) => {
+      if (method === "textDocument/prepareCallHierarchy") return [rootItem];
+      if (method === "callHierarchy/incomingCalls") {
+        const uri = pathToFileURL(targetPath).href;
+        return [
+          {
+            from: makeItem("beta", uri, 0, 9),
+            fromRanges: [{ start: { line: 0, character: 18 }, end: { line: 0, character: 23 } }],
+          },
+          {
+            from: makeItem("gamma", uri, 1, 9),
+            fromRanges: [{ start: { line: 1, character: 19 }, end: { line: 1, character: 24 } }],
+          },
+        ];
+      }
+      if (method === "callHierarchy/outgoingCalls") return [];
+      return null;
     };
+    session = makeSession("Stub Server", { callHierarchyProvider: true }, respond);
+    sessions = [session];
+    service = { activeSessionsForEditor: async () => sessions };
     serviceDisposable = mainModule.consumeIdeClient(service);
   });
 
@@ -134,7 +146,7 @@ describe("call-hierarchy", () => {
     // The dock item is open in the right dock by default.
     expect(lumine.workspace.getRightDock().getPaneItems()).toContain(view);
 
-    expect(service.request).toHaveBeenCalledWith(editor, "textDocument/prepareCallHierarchy", {
+    expect(session.request).toHaveBeenCalledWith("textDocument/prepareCallHierarchy", {
       textDocument: { uri: pathToFileURL(originPath).href },
       position: { line: 0, character: 12 },
     });
@@ -148,8 +160,7 @@ describe("call-hierarchy", () => {
     expect(names(view)).toEqual(["alpha", "beta", "gamma"]);
     const incoming = requestCalls("callHierarchy/incomingCalls");
     expect(incoming.length).toBe(1);
-    expect(incoming[0].args[0]).toBe(editor);
-    expect(incoming[0].args[2].item.name).toBe("alpha");
+    expect(incoming[0].args[1].item.name).toBe("alpha");
 
     // Collapse and re-expand: the children come from the per-node cache.
     lumine.commands.dispatch(view.element, "core:move-left");
@@ -201,11 +212,69 @@ describe("call-hierarchy", () => {
     expect(notification.getType()).toBe("info");
     expect(notification.getMessage()).toContain("does not support call hierarchy");
     expect(mainModule.view).toBeNull();
-    expect(service.request).not.toHaveBeenCalled();
+    expect(session.request).not.toHaveBeenCalled();
+  });
+
+  it("asks the server that supports it, not the one that registered first", async () => {
+    // Two servers on one file is the normal case — a type checker beside a
+    // linter. Taking sessions[0] reported the linter's "no call hierarchy" as
+    // the file's answer while the checker sat right there.
+    const linter = makeSession("Linter", {}, respond);
+    sessions = [linter, session];
+
+    const view = await showIncoming();
+    expect(names(view)).toEqual(["alpha"]);
+    expect(linter.request).not.toHaveBeenCalled();
+    expect(requestCalls("textDocument/prepareCallHierarchy").length).toBe(1);
+  });
+
+  it("honours a capability the server registered dynamically", async () => {
+    // A dynamic registration leaves `capabilities` empty, so the old direct
+    // read of capabilities.callHierarchyProvider refused a server that in fact
+    // serves it. supports() is the only check that sees both.
+    session.capabilities = {};
+    session.supports = () => true;
+
+    const view = await showIncoming();
+    expect(names(view)).toEqual(["alpha"]);
+  });
+
+  it("keeps the whole tree on the session that prepared the root", async () => {
+    // An item's `data` is opaque and means nothing to another server, so a
+    // second capable session must never be handed an expansion.
+    const other = makeSession("Other", { callHierarchyProvider: true }, respond);
+    sessions = [session, other];
+
+    const view = await showIncoming();
+    await expandRoot(view);
+    expect(names(view)).toEqual(["alpha", "beta", "gamma"]);
+    expect(other.request).not.toHaveBeenCalled();
+  });
+
+  it("stays generic when several servers are attached and none can serve it", async () => {
+    sessions = [makeSession("Linter", {}, respond), makeSession("Other", {}, respond)];
+    lumine.notifications.clear();
+    lumine.commands.dispatch(lumine.views.getView(editor), "call-hierarchy:incoming-calls");
+
+    const notification = await waitFor(() => lumine.notifications.getNotifications()[0]);
+    expect(notification.getMessage()).toBe(
+      "No language server for this file supports call hierarchy.",
+    );
+    expect(mainModule.view).toBeNull();
+  });
+
+  it("notifies when no language server is attached at all", async () => {
+    sessions = [];
+    lumine.notifications.clear();
+    lumine.commands.dispatch(lumine.views.getView(editor), "call-hierarchy:incoming-calls");
+
+    const notification = await waitFor(() => lumine.notifications.getNotifications()[0]);
+    expect(notification.getMessage()).toBe("No language server is active for this file.");
+    expect(mainModule.view).toBeNull();
   });
 
   it("notifies when the server finds no symbol at the cursor", async () => {
-    service.request.and.resolveTo(null);
+    session.request.and.resolveTo(null);
     lumine.notifications.clear();
     lumine.commands.dispatch(lumine.views.getView(editor), "call-hierarchy:incoming-calls");
 
