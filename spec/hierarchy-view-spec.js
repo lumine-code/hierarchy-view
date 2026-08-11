@@ -50,6 +50,8 @@ function makeSession(id, capabilities, respond) {
     supports(method) {
       if (method === "textDocument/prepareCallHierarchy")
         return !!this.capabilities.callHierarchyProvider;
+      if (method === "textDocument/prepareTypeHierarchy")
+        return !!this.capabilities.typeHierarchyProvider;
       return true;
     },
     request: jasmine.createSpy(`${id} request`).and.callFake(respond),
@@ -70,11 +72,27 @@ describe("hierarchy-view", () => {
     return target.request.calls.all().filter((call) => call.args[0] === method);
   }
 
-  async function showIncoming() {
-    lumine.commands.dispatch(lumine.views.getView(editor), "hierarchy-view:incoming-calls");
+  async function show(command) {
+    lumine.commands.dispatch(lumine.views.getView(editor), command);
     const view = await waitFor(() => mainModule.view);
     await waitFor(() => view.element.querySelector("li.hierarchy-view-entry"));
     return view;
+  }
+
+  const showIncoming = () => show("hierarchy-view:incoming-calls");
+  const showSupertypes = () => show("hierarchy-view:supertypes");
+
+  function badges(view) {
+    return Array.from(view.element.querySelectorAll(".hierarchy-view-count")).map(
+      (el) => el.textContent,
+    );
+  }
+
+  async function expandSelected(view, expected) {
+    lumine.commands.dispatch(view.element, "core:move-right");
+    await waitFor(
+      () => view.element.querySelectorAll("li.hierarchy-view-entry").length === expected,
+    );
   }
 
   async function expandRoot(view) {
@@ -96,11 +114,25 @@ describe("hierarchy-view", () => {
     mainModule = pack.mainModule;
     editor = await lumine.workspace.open(originPath);
 
-    // A stub of the `ide-client` service: one prepared item at the
-    // cursor, two incoming callers in another file, and no outgoing calls.
+    // A stub of the `ide-client` service. Calls: one prepared item at the
+    // cursor, two incoming callers in another file, no outgoing calls — and
+    // `gamma` calls it twice, which is what the count badge reports. Types:
+    // Rectangle, with a two-level supertype chain and one subtype, so both
+    // directions need more than a single expansion. Type replies are bare
+    // item arrays, exactly as the protocol specifies.
     const rootItem = makeItem("alpha", pathToFileURL(originPath).href, 0, 9);
-    respond = async (method) => {
+    const typeRoot = makeItem("Rectangle", pathToFileURL(targetPath).href, 0, 7);
+    const supertypes = { Rectangle: ["Polygon"], Polygon: ["Shape"], Shape: [] };
+    const subtypes = { Rectangle: ["Square"], Square: [] };
+    const asTypes = (fromTable, item) =>
+      (fromTable[item.name] ?? []).map((name) =>
+        makeItem(name, pathToFileURL(targetPath).href, 0, 7),
+      );
+    respond = async (method, params) => {
       if (method === "textDocument/prepareCallHierarchy") return [rootItem];
+      if (method === "textDocument/prepareTypeHierarchy") return [typeRoot];
+      if (method === "typeHierarchy/supertypes") return asTypes(supertypes, params.item);
+      if (method === "typeHierarchy/subtypes") return asTypes(subtypes, params.item);
       if (method === "callHierarchy/incomingCalls") {
         const uri = pathToFileURL(targetPath).href;
         return [
@@ -110,14 +142,21 @@ describe("hierarchy-view", () => {
           },
           {
             from: makeItem("gamma", uri, 1, 9),
-            fromRanges: [{ start: { line: 1, character: 19 }, end: { line: 1, character: 24 } }],
+            fromRanges: [
+              { start: { line: 1, character: 19 }, end: { line: 1, character: 24 } },
+              { start: { line: 1, character: 27 }, end: { line: 1, character: 32 } },
+            ],
           },
         ];
       }
       if (method === "callHierarchy/outgoingCalls") return [];
       return null;
     };
-    session = makeSession("Stub Server", { callHierarchyProvider: true }, respond);
+    session = makeSession(
+      "Stub Server",
+      { callHierarchyProvider: true, typeHierarchyProvider: true },
+      respond,
+    );
     sessions = [session];
     service = { activeSessionsForEditor: async () => sessions };
     serviceDisposable = mainModule.consumeIdeClient(service);
@@ -213,6 +252,90 @@ describe("hierarchy-view", () => {
     expect(notification.getMessage()).toContain("does not support call hierarchy");
     expect(mainModule.view).toBeNull();
     expect(session.request).not.toHaveBeenCalled();
+  });
+
+  it("shows the prepared type as the tree root", async () => {
+    const view = await showSupertypes();
+
+    expect(names(view)).toEqual(["Rectangle"]);
+    expect(view.element.querySelector(".hierarchy-view-direction").textContent).toBe("Supertypes");
+    expect(
+      view.element.querySelector(".hierarchy-view-direction").classList.contains("icon-arrow-up"),
+    ).toBe(true);
+    expect(view.getTitle()).toBe("Type Hierarchy");
+    expect(view.getIconName()).toBe("organization");
+    expect(session.request).toHaveBeenCalledWith("textDocument/prepareTypeHierarchy", {
+      textDocument: { uri: pathToFileURL(originPath).href },
+      position: { line: 0, character: 0 },
+    });
+  });
+
+  it("expands a bare TypeHierarchyItem array, at depth", async () => {
+    // supertypes/subtypes answer with the items themselves, not the
+    // {from, fromRanges} wrapper call hierarchy uses.
+    const view = await showSupertypes();
+    await expandSelected(view, 2);
+    expect(names(view)).toEqual(["Rectangle", "Polygon"]);
+
+    lumine.commands.dispatch(view.element, "core:move-down");
+    await expandSelected(view, 3);
+    expect(names(view)).toEqual(["Rectangle", "Polygon", "Shape"]);
+  });
+
+  it("badges a repeated call site but never a type entry", async () => {
+    // A type child has no fromRanges at all, so the badge disappears without
+    // the view branching on the hierarchy anywhere.
+    const calls = await showIncoming();
+    await expandSelected(calls, 3);
+    expect(badges(calls)).toEqual(["2"]);
+
+    const types = await showSupertypes();
+    await expandSelected(types, 2);
+    expect(badges(types)).toEqual([]);
+  });
+
+  it("switches supertypes to subtypes and re-queries the same root", async () => {
+    const view = await showSupertypes();
+    await expandSelected(view, 2);
+
+    view.element.querySelector(".hierarchy-view-switch").dispatchEvent(new MouseEvent("click"));
+    expect(view.element.querySelector(".hierarchy-view-direction").textContent).toBe("Subtypes");
+    expect(names(view)).toEqual(["Rectangle"]);
+
+    await expandSelected(view, 2);
+    expect(names(view)).toEqual(["Rectangle", "Square"]);
+    // The prepared item is direction-independent, so no second prepare.
+    expect(requestCalls("textDocument/prepareTypeHierarchy").length).toBe(1);
+  });
+
+  it("retitles the dock item when the other hierarchy replaces it", async () => {
+    // One pane item serves both, so the tab has to be told. It renders the
+    // title and icon once and then follows these emitters.
+    const view = await showIncoming();
+    expect(view.getTitle()).toBe("Call Hierarchy");
+
+    const titles = [];
+    const icons = [];
+    view.onDidChangeTitle((title) => titles.push(title));
+    view.onDidChangeIcon((icon) => icons.push(icon));
+
+    await showSupertypes();
+    expect(titles).toEqual(["Type Hierarchy"]);
+    expect(icons).toEqual(["organization"]);
+    expect(names(view)).toEqual(["Rectangle"]);
+  });
+
+  it("refuses one hierarchy while still serving the other", async () => {
+    session.capabilities = { callHierarchyProvider: true };
+    lumine.notifications.clear();
+    lumine.commands.dispatch(lumine.views.getView(editor), "hierarchy-view:supertypes");
+
+    const notification = await waitFor(() => lumine.notifications.getNotifications()[0]);
+    expect(notification.getMessage()).toBe("The Stub Server does not support type hierarchy.");
+    expect(mainModule.view).toBeNull();
+
+    const view = await showIncoming();
+    expect(names(view)).toEqual(["alpha"]);
   });
 
   it("asks the server that supports it, not the one that registered first", async () => {
