@@ -16,7 +16,7 @@ Both hierarchies share one dock item, powered by the bundled language-server hub
 
 ## Installation
 
-To install `hierarchy-view` search for _hierarchy-view_ in the Install pane of the Lumine settings or run `lumine --install lumine-code/hierarchy-view`.
+To install `hierarchy-view` search for it in the Install pane of the Lumine settings, or run the command `lumine --install lumine-code/hierarchy-view`.
 
 ## Commands
 
@@ -53,7 +53,7 @@ The hierarchy appearance can be tweaked from your `styles.css`:
 
 ## Services
 
-- **ide-client** (`^1.0.0`): consumed to route the `textDocument/prepareCallHierarchy`, `callHierarchy/incomingCalls`, `callHierarchy/outgoingCalls`, `textDocument/prepareTypeHierarchy`, `typeHierarchy/supertypes` and `typeHierarchy/subtypes` requests through the language-server session that serves the file.
+- `ide-client`: consumed to route the `textDocument/prepareCallHierarchy`, `callHierarchy/incomingCalls`, `callHierarchy/outgoingCalls`, `textDocument/prepareTypeHierarchy`, `typeHierarchy/supertypes` and `typeHierarchy/subtypes` requests through the language-server session that serves the file.
 
 ## Contributing
 
