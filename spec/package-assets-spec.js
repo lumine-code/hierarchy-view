@@ -12,16 +12,16 @@ describe("hierarchy-view package assets", () => {
   it("ships a keymap on the reveal tier, and no menus", () => {
     // A bare alt-<letter> at workspace scope reveals a surface, one letter per
     // surface. `keymaps` has to be in `files` or the binding never ships.
-    const keymap = JSON.parse(read("keymaps/hierarchy-view.json").replace(/^\s*\/\/.*$/gm, ""));
+    const keymap = JSON.parse(read("keymaps/main.json").replace(/^\s*\/\/.*$/gm, ""));
     expect(keymap["lumine-workspace"]["alt-k"]).toBe("hierarchy-view:toggle-focus");
     expect(JSON.parse(read("package.json")).files).toContain("keymaps");
     expect(exists("menus")).toBe(false);
   });
 
   it("ships a CSS stylesheet built on custom properties, not Less", () => {
-    expect(exists("styles/hierarchy-view.css")).toBe(true);
+    expect(exists("styles/main.css")).toBe(true);
     expect(exists("styles/hierarchy-view.less")).toBe(false);
-    const css = read("styles/hierarchy-view.css");
+    const css = read("styles/main.css");
     expect(css).toContain(".hierarchy-view");
     expect(css).toContain("var(--");
     expect(css).not.toContain('@import "ui-variables"');
