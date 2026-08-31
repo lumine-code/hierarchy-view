@@ -2,6 +2,7 @@ const fs = require("fs");
 const os = require("os");
 const path = require("path");
 const { pathToFileURL } = require("url");
+const { Icon } = require("lumine");
 
 function waitFor(condition, timeout = 5000) {
   return new Promise((resolve, reject) => {
@@ -60,7 +61,7 @@ function makeSession(id, capabilities, respond) {
 
 describe("hierarchy-view", () => {
   let mainModule, editor, tempDir, originPath, targetPath;
-  let service, session, sessions, respond, serviceDisposable;
+  let service, session, sessions, respond, serviceDisposable, iconRegistration;
 
   function names(view) {
     return Array.from(view.element.querySelectorAll(".hierarchy-view-name")).map(
@@ -163,6 +164,7 @@ describe("hierarchy-view", () => {
   });
 
   afterEach(async () => {
+    iconRegistration?.dispose();
     serviceDisposable?.dispose();
     await lumine.packages.deactivatePackage("hierarchy-view");
     // Retries because Windows keeps a directory non-empty until the last handle on a child
@@ -189,6 +191,30 @@ describe("hierarchy-view", () => {
       textDocument: { uri: pathToFileURL(originPath).href },
       position: { line: 0, character: 12 },
     });
+  });
+
+  it("uses and live-updates the shared kind icon registry", async () => {
+    const view = await showIncoming();
+    expect(view.element.querySelector(".hierarchy-view-name.icon-gear")).toExist();
+
+    iconRegistration = lumine.icons.addProvider(
+      {
+        id: "hierarchy-view-spec",
+        handles: ["kind"],
+        usesContext: true,
+        iconFor(target) {
+          return target.context === "hierarchy-view" && target.kind === "function"
+            ? Icon.classes(["icon-flame"])
+            : null;
+        },
+      },
+      { priority: 100 },
+    );
+    await waitFor(() => view.element.querySelector(".hierarchy-view-name.icon-flame"));
+
+    iconRegistration.dispose();
+    iconRegistration = null;
+    await waitFor(() => view.element.querySelector(".hierarchy-view-name.icon-gear"));
   });
 
   it("lazily expands a node into its callers and caches the result", async () => {
