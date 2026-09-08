@@ -172,6 +172,57 @@ describe("hierarchy-view", () => {
     fs.rmSync(tempDir, { recursive: true, force: true, maxRetries: 10, retryDelay: 50 });
   });
 
+  describe("workspace serialization", () => {
+    it("restores only a validated hierarchy mode and no live LSP tree", async () => {
+      await lumine.packages.deactivatePackage("hierarchy-view");
+      const pack = lumine.packages.getLoadedPackage("hierarchy-view");
+      mainModule = pack.mainModule;
+      const activate = spyOn(mainModule, "activate").and.callThrough();
+      const initialActivation = spyOn(
+        lumine.packages,
+        "hasActivatedInitialPackages",
+      ).and.returnValue(false);
+      const state = {
+        deserializer: "hierarchy-view/HierarchyView",
+        kind: "type",
+        direction: "down",
+      };
+      const restored = lumine.deserializers.deserialize(state);
+
+      expect(restored.serialize()).toEqual(state);
+      expect(restored.root).toBeNull();
+      expect(restored.session).toBeNull();
+      expect(restored.element.querySelectorAll("li.hierarchy-view-entry").length).toBe(0);
+      expect(restored.element.textContent).toContain("No Types");
+      expect(session.request).not.toHaveBeenCalled();
+      expect(mainModule.getView()).toBe(restored);
+      expect(lumine.deserializers.deserialize(restored.serialize())).toBe(restored);
+      expect(activate).not.toHaveBeenCalled();
+
+      initialActivation.and.callThrough();
+      await lumine.packages.activatePackage("hierarchy-view");
+      expect(activate.calls.count()).toBe(1);
+      expect(mainModule.getView()).toBe(restored);
+
+      restored.destroy();
+      expect(mainModule.view).toBeNull();
+      const fallback = lumine.deserializers.deserialize({
+        deserializer: "hierarchy-view/HierarchyView",
+        kind: "unknown",
+        direction: "sideways",
+        root: { name: "must not be restored" },
+      });
+      expect(fallback.serialize()).toEqual({
+        deserializer: "hierarchy-view/HierarchyView",
+        kind: "call",
+        direction: "up",
+      });
+      expect(fallback.root).toBeNull();
+      expect(fallback.session).toBeNull();
+      expect(session.request).not.toHaveBeenCalled();
+    });
+  });
+
   it("shows the prepared symbol as the tree root in a dock item", async () => {
     editor.setCursorBufferPosition([0, 12]);
     const view = await showIncoming();
