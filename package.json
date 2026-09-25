@@ -20,10 +20,6 @@
   "engines": {
     "lumine": "^1.0.0"
   },
-  "backgroundTips": [
-    "{% if keys['hierarchy-view:incoming-calls'] %}You can list the callers of the symbol under the cursor with {{ 'hierarchy-view:incoming-calls' | keystroke }}{% else %}You can walk the callers and the callees of a symbol as a lazily expanded tree.{% endif %}",
-    "{% if keys['hierarchy-view:supertypes'] %}You can list the base types of the symbol under the cursor with {{ 'hierarchy-view:supertypes' | keystroke }}{% else %}You can walk the supertypes and the subtypes of a type as a lazily expanded tree.{% endif %}"
-  ],
   "main": "./lib/main",
   "files": [
     "keymaps",
@@ -39,6 +35,13 @@
     "lint": "eslint . --max-warnings 0",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
+  },
+  "providedServices": {
+    "background-tips.provider": {
+      "versions": {
+        "1.0.0": "provideBackgroundTips"
+      }
+    }
   },
   "consumedServices": {
     "ide-client": {

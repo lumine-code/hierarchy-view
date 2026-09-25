@@ -41,10 +41,12 @@ describe("hierarchy-view package assets", () => {
     expect(pkg.devDependencies.prettier).toBeDefined();
   });
 
-  it("consumes the ide-client service and provides none", () => {
+  it("consumes the ide-client service and provides background tips", () => {
     const pkg = JSON.parse(read("package.json"));
     expect(pkg.consumedServices["ide-client"].versions["^1.0.0"]).toBe("consumeIdeClient");
-    expect(pkg.providedServices).toBeUndefined();
+    expect(pkg.providedServices["background-tips.provider"].versions["1.0.0"]).toBe(
+      "provideBackgroundTips",
+    );
   });
 
   it("defines the config schema under the hierarchy-view namespace without order keys", () => {
@@ -96,14 +98,13 @@ describe("hierarchy-view package assets", () => {
     }
   });
 
-  it("ships a background tip for each hierarchy, right after engines", () => {
-    const pkg = JSON.parse(read("package.json"));
-    expect(pkg.backgroundTips.length).toBe(2);
-    const keys = Object.keys(pkg);
-    expect(keys[keys.indexOf("engines") + 1]).toBe("backgroundTips");
+  it("provides a background tip for each hierarchy", () => {
+    const contribution = require("../lib/main").provideBackgroundTips();
+    expect(contribution.packageName).toBe("hierarchy-view");
+    expect(contribution.tips.length).toBe(2);
     // Neither command is bound, so the else branch is what actually renders;
     // a tip whose only form is a keystroke would show nothing.
-    for (const tip of pkg.backgroundTips) expect(tip).toContain("{% else %}");
+    for (const tip of contribution.tips) expect(tip).toContain("{% else %}");
   });
 
   it("has no legacy editor branding in lib, README, or package.json", () => {
