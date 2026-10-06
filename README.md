@@ -53,7 +53,7 @@ The hierarchy appearance can be tweaked from your `styles.css`:
 
 ## Services
 
-- `ide-client`: consumed to route the `textDocument/prepareCallHierarchy`, `callHierarchy/incomingCalls`, `callHierarchy/outgoingCalls`, `textDocument/prepareTypeHierarchy`, `typeHierarchy/supertypes` and `typeHierarchy/subtypes` requests through the language-server session that serves the file.
+- `ide`: consumed to route the `textDocument/prepareCallHierarchy`, `callHierarchy/incomingCalls`, `callHierarchy/outgoingCalls`, `textDocument/prepareTypeHierarchy`, `typeHierarchy/supertypes` and `typeHierarchy/subtypes` requests through the language-server session that serves the file.
 
 ## Contributing
 

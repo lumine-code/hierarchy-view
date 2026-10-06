@@ -115,7 +115,7 @@ describe("hierarchy-view", () => {
     mainModule = pack.mainModule;
     editor = await lumine.workspace.open(originPath);
 
-    // A stub of the `ide-client` service. Calls: one prepared item at the
+    // A stub of the `ide` service. Calls: one prepared item at the
     // cursor, two incoming callers in another file, no outgoing calls — and
     // `gamma` calls it twice, which is what the count badge reports. Types:
     // Rectangle, with a two-level supertype chain and one subtype, so both
@@ -160,7 +160,7 @@ describe("hierarchy-view", () => {
     );
     sessions = [session];
     service = { activeSessionsForEditor: async () => sessions };
-    serviceDisposable = mainModule.consumeIdeClient(service);
+    serviceDisposable = mainModule.consumeIde(service);
   });
 
   afterEach(async () => {

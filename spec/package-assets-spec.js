@@ -41,9 +41,9 @@ describe("hierarchy-view package assets", () => {
     expect(pkg.devDependencies.prettier).toBeDefined();
   });
 
-  it("consumes the ide-client service and provides background tips", () => {
+  it("consumes the ide service and provides background tips", () => {
     const pkg = JSON.parse(read("package.json"));
-    expect(pkg.consumedServices["ide-client"].versions["^1.0.0"]).toBe("consumeIdeClient");
+    expect(pkg.consumedServices["ide"].versions["^1.0.0"]).toBe("consumeIde");
     expect(pkg.providedServices["background-tips.provider"].versions["1.0.0"]).toBe(
       "provideBackgroundTips",
     );
