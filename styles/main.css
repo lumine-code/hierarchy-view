@@ -1,7 +1,7 @@
 .hierarchy-view {
   display: flex;
   flex-direction: column;
-  font-size: var(--font-size);
+  font-size: var(--ui-font-size);
   font-weight: 400;
   color: var(--text-color);
   background-color: var(--tree-view-background-color);
@@ -35,7 +35,7 @@
 }
 
 .hierarchy-view .icon::before {
-  font-size: var(--font-size);
+  font-size: var(--ui-font-size);
 }
 
 .hierarchy-view ul.hierarchy-view-tree {
