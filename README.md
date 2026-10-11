@@ -55,6 +55,8 @@ The hierarchy appearance can be tweaked from your `styles.css`:
 
 - `ide`: consumed to route the `textDocument/prepareCallHierarchy`, `callHierarchy/incomingCalls`, `callHierarchy/outgoingCalls`, `textDocument/prepareTypeHierarchy`, `typeHierarchy/supertypes` and `typeHierarchy/subtypes` requests through the language-server session that serves the file.
 
+Commands use the most recently connected hub while it is available and restore an earlier live hub when it withdraws. A tree already on screen keeps the session that prepared its root.
+
 ## Contributing
 
 Got ideas to make this package better, found a bug, or want to help add new features? Just drop your thoughts on GitHub. Any feedback is welcome!
