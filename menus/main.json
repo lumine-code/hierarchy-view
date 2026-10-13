@@ -22,7 +22,9 @@
               "label": "Subtypes",
               "command": "hierarchy-view:subtypes"
             }
-          ]
+          ],
+          "group": "symbols",
+          "order": 60
         }
       ]
     },
@@ -34,7 +36,9 @@
           "submenu": [
             {
               "label": "Hierarchy",
-              "command": "hierarchy-view:toggle"
+              "command": "hierarchy-view:toggle",
+              "group": "panels",
+              "order": 10
             }
           ]
         }
