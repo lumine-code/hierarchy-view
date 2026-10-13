@@ -9,13 +9,15 @@ const exists = (rel) => fs.existsSync(path.join(root, rel));
 // the command prefix and config namespace, the CSS-custom-property stylesheet,
 // and the absence of legacy editor branding.
 describe("hierarchy-view package assets", () => {
-  it("ships a keymap on the reveal tier, and no menus", () => {
+  it("ships the reveal keymap and application menus in the package payload", () => {
     // A bare alt-<letter> at workspace scope reveals a surface, one letter per
     // surface. `keymaps` has to be in `files` or the binding never ships.
     const keymap = JSON.parse(read("keymaps/main.json").replace(/^\s*\/\/.*$/gm, ""));
     expect(keymap["lumine-workspace"]["alt-k"]).toBe("hierarchy-view:toggle-focus");
     expect(JSON.parse(read("package.json")).files).toContain("keymaps");
-    expect(exists("menus")).toBe(false);
+    expect(JSON.parse(read("package.json")).files).toContain("menus");
+    const menus = JSON.parse(read("menus/main.json")).menu;
+    expect(menus.map((menu) => menu.label)).toEqual(["Search", "View", "Packages"]);
   });
 
   it("ships a CSS stylesheet built on custom properties, not Less", () => {

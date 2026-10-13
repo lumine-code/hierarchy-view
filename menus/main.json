@@ -1,0 +1,78 @@
+{
+  "menu": [
+    {
+      "label": "Search",
+      "submenu": [
+        {
+          "label": "Hierarchy",
+          "submenu": [
+            {
+              "label": "Incoming Calls",
+              "command": "hierarchy-view:incoming-calls"
+            },
+            {
+              "label": "Outgoing Calls",
+              "command": "hierarchy-view:outgoing-calls"
+            },
+            {
+              "label": "Supertypes",
+              "command": "hierarchy-view:supertypes"
+            },
+            {
+              "label": "Subtypes",
+              "command": "hierarchy-view:subtypes"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "View",
+      "submenu": [
+        {
+          "label": "Toggle View",
+          "submenu": [
+            {
+              "label": "Hierarchy",
+              "command": "hierarchy-view:toggle"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "Packages",
+      "submenu": [
+        {
+          "label": "Hierarchy View",
+          "submenu": [
+            {
+              "label": "Incoming Calls",
+              "command": "hierarchy-view:incoming-calls"
+            },
+            {
+              "label": "Outgoing Calls",
+              "command": "hierarchy-view:outgoing-calls"
+            },
+            {
+              "label": "Supertypes",
+              "command": "hierarchy-view:supertypes"
+            },
+            {
+              "label": "Subtypes",
+              "command": "hierarchy-view:subtypes"
+            },
+            {
+              "label": "Toggle",
+              "command": "hierarchy-view:toggle"
+            },
+            {
+              "label": "Toggle Focus",
+              "command": "hierarchy-view:toggle-focus"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

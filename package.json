@@ -24,6 +24,7 @@
   "files": [
     "keymaps",
     "lib",
+    "menus",
     "spec",
     "styles"
   ],

@@ -23,9 +23,7 @@ To install `hierarchy-view` search for it in the Install pane of the Lumine sett
 Commands available in `lumine-workspace`:
 
 - `hierarchy-view:toggle`: show or hide the hierarchy dock item,
-- `hierarchy-view:toggle-focus`: focus the hierarchy, or return focus to the editor.
-
-Commands available in `lumine-text-editor`:
+- `hierarchy-view:toggle-focus`: focus the hierarchy, or return focus to the editor,
 
 - `hierarchy-view:incoming-calls`: show the callers of the symbol under the cursor,
 - `hierarchy-view:outgoing-calls`: show the calls made from the symbol under the cursor,

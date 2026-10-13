@@ -38,9 +38,10 @@ describe("Hierarchy commands in their dispatch editor", () => {
     for (const command of commands) {
       sessions.calls.reset();
       lumine.commands.dispatch(editor.getElement(), `hierarchy-view:${command}`);
-      expect(run).toHaveBeenCalled();
+      expect(run).toHaveBeenCalledTimes(1);
       await run.calls.mostRecent().returnValue;
       expect(sessions).toHaveBeenCalledOnceWith(editor);
+      run.calls.reset();
     }
   }
 
@@ -57,6 +58,17 @@ describe("Hierarchy commands in their dispatch editor", () => {
   it("retains the active-editor fallback for a direct request without an event", async () => {
     await main.showHierarchy("call", "up");
     expect(sessions).toHaveBeenCalledOnceWith(active);
+  });
+  it("resolves the active editor when a focused unrelated surface dispatches the menu command", async () => {
+    const button = document.createElement("button");
+    lumine.workspace.getElement().appendChild(button);
+    try {
+      button.focus();
+      await lumine.commands.dispatch(button, "hierarchy-view:incoming-calls");
+      expect(sessions).toHaveBeenCalledOnceWith(active);
+    } finally {
+      button.remove();
+    }
   });
 
   it("uses a real attached editor that is not a pane item", async () => {
