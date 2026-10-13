@@ -14,6 +14,10 @@ Both hierarchies share one dock item, powered by the bundled language-server hub
 - **One server per tree**: the server that prepared the root answers every request in it, so an entry is never resolved against a server that did not produce it.
 - **Capability aware**: commands no-op with a notification when no language server on the file serves that hierarchy.
 
+![Explore the incoming calls of a TypeScript function.](.github/demo.png)
+
+![Explore the incoming calls of a TypeScript function.](.github/demo-2.png)
+
 ## Installation
 
 To install `hierarchy-view` search for it in the Install pane of the Lumine settings, or run the command `lumine --install lumine-code/hierarchy-view`.

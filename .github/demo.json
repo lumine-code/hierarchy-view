@@ -1,0 +1,23 @@
+{
+  "title": "hierarchy-view",
+  "description": "Explore the incoming calls of a TypeScript function.",
+  "recordedOn": "2026-10-13",
+  "sourceRevision": "1c354f7d5002911cfb605780611a11ba3a3138b4",
+  "mode": "normal",
+  "fontSettings": "default",
+  "themeSourceRevision": "6564a9e21899b5541e9c8f8006f9be6d6d72e6ad",
+  "images": [
+    {
+      "file": "demo.png",
+      "label": "Explore the incoming calls of a TypeScript function.",
+      "width": 1150,
+      "height": 600
+    },
+    {
+      "file": "demo-2.png",
+      "label": "Explore the incoming calls of a TypeScript function.",
+      "width": 1150,
+      "height": 600
+    }
+  ]
+}
