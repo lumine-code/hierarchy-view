@@ -17,7 +17,7 @@ describe("hierarchy-view package assets", () => {
     expect(JSON.parse(read("package.json")).files).toContain("keymaps");
     expect(JSON.parse(read("package.json")).files).toContain("menus");
     const menus = JSON.parse(read("menus/main.json")).menu;
-    expect(menus.map((menu) => menu.label)).toEqual(["Search", "View", "Packages"]);
+    expect(menus.map((menu) => menu.label)).toEqual(["Go", "View", "Packages"]);
   });
 
   it("ships a CSS stylesheet built on custom properties, not Less", () => {
