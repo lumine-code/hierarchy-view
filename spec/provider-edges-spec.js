@@ -36,7 +36,13 @@ describe("Hierarchy View independent service edges", () => {
       !path.basename(scratch).startsWith("hierarchy-edges-")
     )
       throw new Error("Hierarchy fixture cleanup escaped its private temporary root");
-    fs.rmSync(scratch, { recursive: true, force: true });
+    // Windows can briefly retain delete-pending entries after watcher teardown.
+    await fs.promises.rm(scratch, {
+      recursive: true,
+      force: true,
+      maxRetries: 5,
+      retryDelay: 100,
+    });
   });
   function provide(name) {
     const item = {
