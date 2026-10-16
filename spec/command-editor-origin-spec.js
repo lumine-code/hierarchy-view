@@ -59,13 +59,14 @@ describe("Hierarchy commands in their dispatch editor", () => {
     await main.showHierarchy("call", "up");
     expect(sessions).toHaveBeenCalledOnceWith(active);
   });
-  it("resolves the active editor when a focused unrelated surface dispatches the menu command", async () => {
+  it("does not borrow an editor from an unrelated focused surface", async () => {
     const button = document.createElement("button");
     lumine.workspace.getElement().appendChild(button);
     try {
       button.focus();
       await lumine.commands.dispatch(button, "hierarchy-view:incoming-calls");
-      expect(sessions).toHaveBeenCalledOnceWith(active);
+      expect(sessions).not.toHaveBeenCalled();
+      expect(lumine.commands.canDispatch(button, "hierarchy-view:incoming-calls")).toBe(false);
     } finally {
       button.remove();
     }
