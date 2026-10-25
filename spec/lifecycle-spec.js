@@ -3,6 +3,11 @@ const os = require("node:os");
 const { pathToFileURL } = require("node:url");
 
 describe("Hierarchy View request ownership", () => {
+  // Analysis fixtures use a real grammar; None deliberately disables this package.
+  beforeEach(async () => {
+    await lumine.packages.activatePackage("language-text");
+  });
+
   let main, editor, service, session, edge, root;
 
   const deferred = () => {

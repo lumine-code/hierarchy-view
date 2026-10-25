@@ -60,6 +60,11 @@ function makeSession(id, capabilities, respond) {
 }
 
 describe("hierarchy-view", () => {
+  // Analysis fixtures use a real grammar; None deliberately disables this package.
+  beforeEach(async () => {
+    await lumine.packages.activatePackage("language-text");
+  });
+
   let mainModule, editor, tempDir, originPath, targetPath;
   let service, session, sessions, respond, serviceDisposable, iconRegistration;
 

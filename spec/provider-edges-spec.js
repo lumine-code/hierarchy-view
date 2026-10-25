@@ -11,6 +11,11 @@ beforeEach(() => {
 });
 
 describe("Hierarchy View independent service edges", () => {
+  // Analysis fixtures use a real grammar; None deliberately disables this package.
+  beforeEach(async () => {
+    await lumine.packages.activatePackage("language-text");
+  });
+
   let main, editor, scratch, temporary, leases;
   beforeEach(async () => {
     jasmine.useRealClock();

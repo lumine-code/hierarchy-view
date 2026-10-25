@@ -1,4 +1,9 @@
 describe("hierarchy service availability", () => {
+  // Analysis fixtures use a real grammar; None deliberately disables this package.
+  beforeEach(async () => {
+    await lumine.packages.activatePackage("language-text");
+  });
+
   it("does not initialize a view or request sessions while the service changes", async () => {
     const main = (await lumine.packages.activatePackage("hierarchy-view")).mainModule;
     const editor = await lumine.workspace.open();
