@@ -79,7 +79,7 @@ describe("hierarchy-view", () => {
   }
 
   async function show(command) {
-    lumine.commands.dispatch(lumine.views.getView(editor), command);
+    await lumine.commands.dispatch(lumine.views.getView(editor), command);
     const view = await waitFor(() => mainModule.view);
     await waitFor(() => view.element.querySelector("li.hierarchy-view-entry"));
     return view;
