@@ -16,7 +16,7 @@ Both hierarchies share one dock item, powered by the bundled language-server hub
 
 ![Explore the incoming calls of a TypeScript function.](.github/demo.png)
 
-![Explore the incoming calls of a TypeScript function.](.github/demo-2.png)
+![Explore the outgoing calls of a TypeScript function.](.github/demo-2.png)
 
 ## Installation
 
