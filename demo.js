@@ -37,7 +37,7 @@ module.exports = {
       caption: "Explore the incoming calls of a TypeScript function.",
       timeout: 60000,
       async run(context) {
-        const { lumine, state } = context;
+        const { lumine, state, waitFor } = context;
         {
           for (let n = 0; n < 60; n++) {
             if (
@@ -82,24 +82,59 @@ module.exports = {
             lumine.views.getView(state.editor),
             "hierarchy-view:incoming-calls",
           );
+          await waitFor(
+            () => document.querySelector(".hierarchy-view")?.innerText.includes("average"),
+            "incoming root",
+          );
+          document.querySelector(".hierarchy-view .list-item").click();
+          await waitFor(
+            () => document.querySelector(".hierarchy-view")?.innerText.includes("summarizeSignal"),
+            "real incoming caller",
+          );
         }
       },
       ready() {
-        return Boolean(document.querySelector(".hierarchy-view"));
+        return Boolean(
+          document.querySelector(".hierarchy-view")?.innerText.includes("summarizeSignal"),
+        );
       },
     },
     {
       id: "scene-2",
       file: "demo-2.png",
-      caption: "Explore the incoming calls of a TypeScript function.",
+      caption: "Explore the outgoing calls of a TypeScript function.",
       timeout: 60000,
-      async run() {
-        {
-          document.querySelector(".hierarchy-view .list-item")?.click();
-        }
+      async run({ lumine, state, waitFor }) {
+        const row = state.editor
+          .getText()
+          .split("\n")
+          .findIndex((line) => line.startsWith("export function summarizeSignal"));
+        state.editor.setCursorBufferPosition([row, 25]);
+        state.editor.scrollToCursorPosition();
+        lumine.views.getView(state.editor).focus();
+        lumine.commands.dispatch(
+          lumine.views.getView(state.editor),
+          "hierarchy-view:outgoing-calls",
+        );
+        await waitFor(
+          () =>
+            document.querySelector(".hierarchy-view")?.innerText.includes("Outgoing calls") &&
+            document.querySelector(".hierarchy-view")?.innerText.includes("summarizeSignal"),
+          "outgoing root",
+        );
+        document.querySelector(".hierarchy-view .list-item").click();
+        await waitFor(
+          () =>
+            document.querySelector(".hierarchy-view")?.innerText.includes("average") &&
+            document.querySelector(".hierarchy-view")?.innerText.includes("peakAmplitude"),
+          "real outgoing targets",
+        );
       },
       ready() {
-        return Boolean(document.querySelector(".hierarchy-view"));
+        return Boolean(
+          document.querySelector(".hierarchy-view")?.innerText.includes("average") &&
+          document.querySelector(".hierarchy-view")?.innerText.includes("peakAmplitude"),
+        );
       },
     },
   ],
