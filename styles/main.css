@@ -83,9 +83,3 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
-
-.hierarchy-view ul.background-message {
-  padding-top: 50px;
-  text-align: center;
-  list-style-type: none;
-}

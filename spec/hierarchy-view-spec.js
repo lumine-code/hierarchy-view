@@ -201,6 +201,9 @@ describe("hierarchy-view", () => {
       expect(restored.session).toBeNull();
       expect(restored.element.querySelectorAll("li.hierarchy-view-entry").length).toBe(0);
       expect(restored.element.textContent).toContain("No Types");
+      const empty = restored.element.querySelector(".panel-empty-state");
+      expect(empty.querySelector("background-tips .centered").textContent).toBe("No Types");
+      expect(empty.contains(restored.element.querySelector(".hierarchy-view-header"))).toBeFalse();
       expect(session.request).not.toHaveBeenCalled();
       expect(mainModule.getView()).toBe(restored);
       expect(lumine.deserializers.deserialize(restored.serialize())).toBe(restored);
