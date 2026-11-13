@@ -315,6 +315,8 @@ describe("hierarchy-view", () => {
   it("reveals transient chrome for confirmation without scrolling the hierarchy", async () => {
     const view = await showIncoming();
     await expandRoot(view);
+    view.element.style.width = "360px";
+    view.element.style.height = "120px";
     const list = view.list;
     list.style.flex = "0 0 28px";
     list.style.height = "28px";
@@ -325,7 +327,15 @@ describe("hierarchy-view", () => {
       policy: "hover",
     });
     await waitFor(
-      () => controller.publicGeometry?.canScrollVertically && controller.geometry.visible,
+      () =>
+        view.element.isConnected &&
+        view.element.clientWidth > 0 &&
+        view.element.clientHeight > 0 &&
+        list.clientWidth > 0 &&
+        list.clientHeight > 0 &&
+        list.scrollHeight > list.clientHeight &&
+        controller.publicGeometry?.canScrollVertically &&
+        controller.geometry.visible,
     );
     const position = [list.scrollTop, list.scrollLeft];
     const reveal = spyOn(lumine.scrollbars, "reveal").and.callThrough();
