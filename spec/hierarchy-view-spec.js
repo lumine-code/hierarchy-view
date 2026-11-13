@@ -312,6 +312,47 @@ describe("hierarchy-view", () => {
     });
   });
 
+  it("reveals transient chrome for confirmation without scrolling the hierarchy", async () => {
+    const view = await showIncoming();
+    await expandRoot(view);
+    const list = view.list;
+    list.style.flex = "0 0 28px";
+    list.style.height = "28px";
+    list.style.minWidth = "320px";
+    const controller = lumine.scrollbars.attach(list, {
+      kind: "panel",
+      layout: "overlay",
+      policy: "hover",
+    });
+    await waitFor(
+      () => controller.publicGeometry?.canScrollVertically && controller.geometry.visible,
+    );
+    const position = [list.scrollTop, list.scrollLeft];
+    const reveal = spyOn(lumine.scrollbars, "reveal").and.callThrough();
+    const open = spyOn(lumine.workspace, "open");
+
+    await lumine.commands.dispatch(view.element, "core:confirm");
+
+    expect(open).toHaveBeenCalled();
+    expect(reveal).toHaveBeenCalledOnceWith(list);
+    expect(reveal.calls.mostRecent().returnValue).toBeTrue();
+    expect(controller.layer.classList.contains("is-revealed")).toBeTrue();
+    expect([list.scrollTop, list.scrollLeft]).toEqual(position);
+  });
+
+  it("does not reveal for confirmation without a selected node or for background rendering", async () => {
+    const view = await showIncoming();
+    view.selectedId = null;
+    const reveal = spyOn(lumine.scrollbars, "reveal");
+    const open = spyOn(lumine.workspace, "open");
+
+    await lumine.commands.dispatch(view.element, "core:confirm");
+    view.render();
+
+    expect(open).not.toHaveBeenCalled();
+    expect(reveal).not.toHaveBeenCalled();
+  });
+
   it("switches direction and re-queries the same root", async () => {
     const view = await showIncoming();
     await expandRoot(view);
