@@ -363,6 +363,70 @@ describe("hierarchy-view", () => {
     expect(reveal).not.toHaveBeenCalled();
   });
 
+  it("reveals a clicked node once without depending on mutable selection", async () => {
+    const view = await showIncoming();
+    const name = view.list.querySelector(".hierarchy-view-name");
+    const position = [view.list.scrollTop, view.list.scrollLeft];
+    const open = spyOn(lumine.workspace, "open");
+    const reveal = spyOn(lumine.scrollbars, "reveal").and.callFake(() => {
+      view.selectedId = "replaced-selection";
+    });
+    name.dispatchEvent(
+      new MouseEvent("click", {
+        bubbles: true,
+        clientX: name.getBoundingClientRect().left + 1,
+      }),
+    );
+    expect(reveal).toHaveBeenCalledOnceWith(view.list);
+    expect(open).toHaveBeenCalledOnceWith(originPath, {
+      initialLine: 0,
+      initialColumn: 9,
+      pending: true,
+    });
+    expect([view.list.scrollTop, view.list.scrollLeft]).toEqual(position);
+  });
+
+  it("reports clicked expansion and collapse once, excluding background rendering", async () => {
+    const view = await showIncoming();
+    const reveal = spyOn(lumine.scrollbars, "reveal");
+    const clickCaret = () => {
+      const entry = view.list.querySelector("li.hierarchy-view-entry");
+      const name = entry.querySelector(".hierarchy-view-name");
+      entry.firstElementChild.dispatchEvent(
+        new MouseEvent("click", {
+          bubbles: true,
+          clientX: name.getBoundingClientRect().left - 1,
+        }),
+      );
+    };
+    clickCaret();
+    await waitFor(() => view.list.querySelectorAll("li.hierarchy-view-entry").length === 3);
+    expect(reveal).toHaveBeenCalledOnceWith(view.list);
+    reveal.calls.reset();
+    clickCaret();
+    expect(view.list.querySelectorAll("li.hierarchy-view-entry").length).toBe(1);
+    expect(reveal).toHaveBeenCalledOnceWith(view.list);
+    reveal.calls.reset();
+    view.render();
+    expect(reveal).not.toHaveBeenCalled();
+  });
+
+  it("ignores stale nodes, non-file targets and context clicks", async () => {
+    const view = await showIncoming();
+    const node = view.selectedNode();
+    const reveal = spyOn(lumine.scrollbars, "reveal");
+    const open = spyOn(lumine.workspace, "open");
+    const row = view.list.querySelector("li.hierarchy-view-entry");
+    row.dispatchEvent(new MouseEvent("click", { bubbles: true, button: 2 }));
+    node.item.uri = "untitled:diagnostic";
+    view.openSelected();
+    view.nodes.delete(node.id);
+    view.openNode(node);
+    view.toggleNode(node);
+    expect(reveal).not.toHaveBeenCalled();
+    expect(open).not.toHaveBeenCalled();
+  });
+
   it("switches direction and re-queries the same root", async () => {
     const view = await showIncoming();
     await expandRoot(view);
